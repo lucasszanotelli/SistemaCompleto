@@ -87,7 +87,7 @@
             // MODO EDITAR
             if (tarefaEditando) {
 
-                const resp = await fetch(`http://localhost:3000/tarefas/${tarefaEditando}`, {
+                const resp = await fetch(`https://sistemacompleto.onrender.com/tarefas/${tarefaEditando}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(dados)
@@ -103,7 +103,7 @@
             }
 
             // MODO CADASTRAR
-            const resp = await fetch("http://localhost:3000/tarefas", {
+            const resp = await fetch("https://sistemacompleto.onrender.com/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(dados)
@@ -126,7 +126,7 @@
             }
 
             try {
-                const resp = await fetch(`http://localhost:3000/tarefas/${id}`);
+                const resp = await fetch(`https://sistemacompleto.onrender.com/${id}`);
                 if (!resp.ok) return;
 
                 const tarefa = await resp.json();
