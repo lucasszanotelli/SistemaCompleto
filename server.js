@@ -1,104 +1,81 @@
-const fs = require('fs');
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const path = require("path");
 
 const app = express();
-
-// Middleware
 app.use(express.json());
 app.use(cors());
 
-// ⬇️ SERVIR ARQUIVOS DA PASTA PUBLIC
-app.use(express.static("public"));
+// ------- SERVIR ARQUIVOS FRONT-END -------
+app.use(express.static(path.join(__dirname, "public")));
 
-/* --------------------- BANCO JSON --------------------- */
+// --------- CONEXÃO COM MONGO DB ----------
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB conectado!"))
+  .catch((err) => console.error("Erro ao conectar MongoDB:", err));
 
-function lerDB() {
-    const data = fs.readFileSync("db.json", "utf8");
-    return JSON.parse(data);
-}
+// --------- DEFININDO O MODELO -------------
+const Tarefa = mongoose.model(
+  "Tarefa",
+  new mongoose.Schema({
+    nome: String,
+    prioridade: String,
+    descricao: String,
+    data: String,
+  })
+);
 
-function salvarDB(db) {
-    fs.writeFileSync("db.json", JSON.stringify(db, null, 2));
-}
+// -------- ROTAS DA API ---------
 
-/* --------------------- ROTAS API --------------------- */
-
-// Listar todas as tarefas
-app.get("/tarefas", (req, res) => {
-    const db = lerDB();
-    res.json(db.tarefas);
+// LISTAR TAREFAS
+app.get("/tarefas", async (req, res) => {
+  const tarefas = await Tarefa.find();
+  res.json(tarefas);
 });
 
-// Buscar tarefa por ID
-app.get("/tarefas/:id", (req, res) => {
-    const db = lerDB();
-    const tarefa = db.tarefas.find(t => String(t.id) === req.params.id);
-
-    if (!tarefa) 
-        return res.status(404).json({ erro: "Tarefa não encontrada" });
-
-    res.json(tarefa);
+// PEGAR TAREFA POR ID
+app.get("/tarefas/:id", async (req, res) => {
+  const tarefa = await Tarefa.findById(req.params.id);
+  if (!tarefa) return res.status(404).json({ erro: "Tarefa não encontrada" });
+  res.json(tarefa);
 });
 
-// Criar tarefa
-app.post("/tarefas", (req, res) => {
-    const db = lerDB();
-
-    const nova = {
-        id: Date.now(),
-        nome: req.body.nome,
-        prioridade: req.body.prioridade,
-        descricao: req.body.descricao,
-        data: req.body.data
-    };
-
-    db.tarefas.push(nova);
-    salvarDB(db);
-
-    res.status(201).json(nova);
+// CADASTRAR
+app.post("/tarefas", async (req, res) => {
+  const nova = await Tarefa.create(req.body);
+  res.status(201).json(nova);
 });
 
-// Atualizar tarefa
-app.put("/tarefas/:id", (req, res) => {
-    const db = lerDB();
-    const tarefa = db.tarefas.find(t => String(t.id) === req.params.id);
+// ATUALIZAR
+app.put("/tarefas/:id", async (req, res) => {
+  const tarefa = await Tarefa.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
 
-    if (!tarefa) 
-        return res.status(404).json({ erro: "Tarefa não encontrada" });
+  if (!tarefa) return res.status(404).json({ erro: "Tarefa não encontrada" });
 
-    tarefa.nome = req.body.nome ?? tarefa.nome;
-    tarefa.prioridade = req.body.prioridade ?? tarefa.prioridade;
-    tarefa.descricao = req.body.descricao ?? tarefa.descricao;
-    tarefa.data = req.body.data ?? tarefa.data;
-
-    salvarDB(db);
-
-    res.json(tarefa);
+  res.json(tarefa);
 });
 
-// Remover
-app.delete("/tarefas/:id", (req, res) => {
-    const db = lerDB();
-    const antes = db.tarefas.length;
+// REMOVER
+app.delete("/tarefas/:id", async (req, res) => {
+  const tarefa = await Tarefa.findByIdAndDelete(req.params.id);
 
-    db.tarefas = db.tarefas.filter(t => String(t.id) !== req.params.id);
+  if (!tarefa) return res.status(404).json({ erro: "Tarefa não encontrada" });
 
-    if (db.tarefas.length === antes)
-        return res.status(404).json({ erro: "Tarefa não encontrada" });
-
-    salvarDB(db);
-
-    res.json({ mensagem: "Tarefa removida" });
+  res.json({ mensagem: "Tarefa removida" });
 });
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+// ROTA PARA QUALQUER OUTRA — SPA
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor online em http://localhost:${PORT}`);
-});
+// --------- INICIAR SERVIDOR --------------
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
