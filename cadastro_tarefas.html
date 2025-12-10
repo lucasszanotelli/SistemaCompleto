@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>Cadastro</title>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light border-bottom bg-success">
+            <div class="container-fluid">
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li>
+                        <a class="btn btn-outline-light navbar-brand fw-bold text-light" href="index.html">HOME</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-success navbar-brand fw-bold text-light" href="cadastro_tarefas.html" id="btnCadastro">
+                            Cadastro de Tarefas
+                        </a>
+                    </li>
+                    <li>
+                        <a class="btn btn-outline-light navbar-brand fw-bold text-light" href="listagem.html">Lista de Tarefas</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container d-flex justify-content-center align-items-center vh-100">
+            <div class="card shadow p-4 w-70">
+                <h2 class="text-center mb-4" id="tituloPagina">Cadastro de Tarefas</h2>
+
+                <form id="form-tarefa">
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label for="nome" class="form-label">Nome</label>
+                            <input type="text" id="nome" class="form-control" placeholder="Nome da Tarefa" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="prioridade" class="form-label">Prioridade</label>
+                            <select id="prioridade" class="form-select">
+                                <option value="baixa">Baixa</option>
+                                <option value="media">Média</option>
+                                <option value="alta">Alta</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea id="descricao" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="data" class="form-label">Data/Hora</label>
+                            <input type="datetime-local" id="data" class="form-control" required>
+                        </div>
+
+                        <div class="col-12">
+                            <button class="btn btn-success w-100" type="submit" id="btnSubmit">Enviar</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let tarefaEditando = null;
+
+        document.getElementById("form-tarefa").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const dados = {
+                nome: nome.value,
+                prioridade: prioridade.value,
+                descricao: descricao.value,
+                data: data.value
+            };
+
+            // MODO EDITAR
+            if (tarefaEditando) {
+
+                const resp = await fetch(`http://localhost:3000/tarefas/${tarefaEditando}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+
+                if (resp.ok) {
+                    localStorage.removeItem("editando");
+                    window.location.href = "listagem.html"; // REDIRECIONA
+                } else {
+                    alert("Erro ao atualizar tarefa!");
+                }
+                return;
+            }
+
+            // MODO CADASTRAR
+            const resp = await fetch("http://localhost:3000/tarefas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dados)
+            });
+
+            if (resp.ok) {
+                alert("Tarefa cadastrada com sucesso!");
+                form-tarefa.reset();
+            } else {
+                alert("Erro ao cadastrar tarefa!");
+            }
+        });
+
+        window.addEventListener("load", async () => {
+            let id = new URLSearchParams(location.search).get("edit");
+
+            if (!id) {
+                tarefaEditando = null;
+                return; // modo cadastro
+            }
+
+            try {
+                const resp = await fetch(`http://localhost:3000/tarefas/${id}`);
+                if (!resp.ok) return;
+
+                const tarefa = await resp.json();
+
+                // preencher os campos
+                nome.value = tarefa.nome;
+                prioridade.value = tarefa.prioridade;
+                descricao.value = tarefa.descricao;
+                data.value = tarefa.data;
+
+                // ajustar textos
+                document.getElementById("tituloPagina").innerText = "Editar Tarefa";
+                document.getElementById("btnSubmit").innerText = "Atualizar";
+                document.getElementById("btnCadastro").innerText = "Editar Tarefa";
+
+                tarefaEditando = id;
+
+            } catch (e) {
+                console.error("Erro ao buscar tarefa:", e);
+            }
+        });
+    </script>
+
+</body>
+</html>

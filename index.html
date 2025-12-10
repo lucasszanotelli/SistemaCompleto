@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>Página Inicial</title>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light border-bottom bg-success">
+            <div class="container-fluid">
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li>
+                        <a class="btn btn-success navbar-brand fw-bold text-light" href="index.html">HOME</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-outline-light  navbar-brand fw-bold text-light"
+                            href="cadastro_tarefas.html">Cadastro de Tarefas</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-outline-light navbar-brand fw-bold text-light" href="listagem.html">Lista de
+                            Tarefas</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+    </header>
+
+    <main class="bg-light py-5">
+        <div class="container">
+            <div class="card shadow-lg border-0 p-5 mx-auto" style="max-width: 900px;">
+                
+                <h1 class="text-center mb-4 fw-bold text-success">
+                    Sistema de Gerenciamento de Tarefas
+                </h1>
+
+                <p class="lead text-center text-secondary">
+                    Bem-vindo ao seu sistema de organização! Aqui você pode cadastrar, editar 
+                    e visualizar todas as suas tarefas de forma simples, prática e totalmente interativa.
+                </p>
+
+                <hr class="my-4">
+
+                <p class="fs-5 text-justify">
+                    Nosso objetivo é facilitar a gestão do seu tempo, oferecendo um ambiente intuitivo
+                    para que você acompanhe suas atividades, defina prioridades, registre prazos e garanta
+                    que nada seja esquecido. Utilize o menu acima para navegar entre as páginas de
+                    <span class="fw-bold text-success">cadastro</span> e
+                    <span class="fw-bold text-success">listagem de tarefas</span>.
+                </p>
+
+                <div class="text-center mt-4">
+                    <a href="cadastro_tarefas.html" class="btn btn-success btn-lg px-4">
+                        Começar Agora <i class="bi bi-arrow-right-circle ms-2"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+    // Se o usuário veio do MENU, limpamos qualquer edição antiga
+    localStorage.removeItem("editando");
+    </script>
+    <script src="https://unpkg.com/imask"></script>
+
+
+</body>
+
+</html>

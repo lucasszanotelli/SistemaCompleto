@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Lista de Tarefas</title>
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light border-bottom bg-success">
+            <div class="container-fluid">
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li>
+                        <a class="btn btn-outline-light navbar-brand fw-bold text-light" href="index.html">HOME</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-outline-light navbar-brand fw-bold text-light"
+                            href="cadastro_tarefas.html">Cadastro de Tarefas</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-success navbar-brand fw-bold text-light" href="listagem.html">Lista de
+                            Tarefas</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mt-4">
+
+        <table class="table table-striped" id="tabelaTarefas">
+            <thead class="table-success text-center">
+                <tr>
+                    <th>Nome</th>
+                    <th>Prioridade</th>
+                    <th>Descrição</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody class="text-center"></tbody>
+        </table>
+
+        <div class="modal fade" id="modalExcluir" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirmar Exclusão</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        Tem certeza que deseja excluir esta tarefa?
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-danger" id="btnConfirmarExcluir">Excluir</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+
+    <script>
+        let idParaExcluir = null; // guarda o id que o usuário quer excluir
+        let modalExcluir; // referência ao modal Bootstrap
+
+        async function carregarTarefas() {
+            const resp = await fetch("http://localhost:3000/tarefas");
+            const tarefas = await resp.json();
+
+            const tbody = document.querySelector("#tabelaTarefas tbody");
+            tbody.innerHTML = "";
+
+            tarefas.forEach(t => {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${t.nome}</td>
+                    <td>${t.prioridade}</td>
+                    <td>${t.descricao}</td>
+                    <td>${t.data}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editar(${t.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletarTarefa(${t.id})">Excluir</button>
+                    </td>
+                </tr>
+            `;
+            });
+        }
+
+        function abrirModalExcluir(id) {
+            idParaExcluir = id;
+            modalExcluir.show();
+        }
+        
+        async function deletarTarefa() {
+            if (!idParaExcluir) return;
+
+            const resp = await fetch(`http://localhost:3000/tarefas/${idParaExcluir}`, {
+                method: "DELETE"
+            });
+
+            if (resp.ok) {
+                carregarTarefas();
+                modalExcluir.hide();
+            } else {
+                alert("Erro ao excluir a tarefa.");
+            }
+
+            idParaExcluir = null;
+        }
+
+        function editar(id) {
+            // fallback: salva também no localStorage
+            localStorage.setItem("editando", id);
+
+            // redireciona com query param (mais explícito e fácil de debugar)
+            window.location.href = `cadastro_tarefas.html?edit=${encodeURIComponent(id)}`;
+        }
+        
+        window.onload = function () {
+            modalExcluir = new bootstrap.Modal(document.getElementById('modalExcluir'));
+            document.getElementById("btnConfirmarExcluir").addEventListener("click", confirmarExclusao);
+            carregarTarefas();
+        };
+
+        carregarTarefas();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
